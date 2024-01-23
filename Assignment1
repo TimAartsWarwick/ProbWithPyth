@@ -28,8 +28,8 @@ def bracelet(a,b,n):
     length = len(cycle)
     return cycle, length
 
-n = 1 #number of digits in the elements of the bracelet. Would be 1 in the original problem
+n = 2 #number of digits in the elements of the bracelet. Would be 1 in the original problem
 a = 2.5 #first number
-b = 6 #second number
+b = -6 #second number
 
 print(bracelet(a, b, n))

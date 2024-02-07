@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def calc_det(matrix):
+    matrix = matrix.astype(np.float64)
+    return np.linalg.det(matrix)
+
+def print_mat(matrix):
+    for row in matrix:
+        print(' '.join(str(cell) if cell is not None else '.' for cell in row))
+    print()
+
+def update_mat(matrix, position, player, n):
+    row = (position - 1) // n
+    col = (position - 1) % n
+    matrix[row, col] = player
+    return matrix
+
+
+
+def play_game(n, starting_player, num_players):
+    matrix = np.full((n, n), "x")
+    total_positions = n**2
+    player_symbols = [0, 1, 2]
+    
+    print(f"Welcome to the Matrix Game for n={n}")
+
+    for i in range(total_positions):
+        
+        current_player = (starting_player + i) % num_players
+        print_mat(matrix)
+        print(f"Player {current_player}'s turn:")
+
+        valid_choice = False
+        while not valid_choice:
+            try:
+                player_choice = int(input(f"Choose a position (1-{total_positions}): "))
+                if 1 <= player_choice <= total_positions:
+                    row = (player_choice - 1) // n
+                    col = (player_choice - 1) % n
+                    if matrix[row, col] == "x":
+                        valid_choice = True
+                        matrix = update_mat(matrix, player_choice, player_symbols[current_player], n)
+                    else:
+                        print("Position already taken, choose another.")
+                else:
+                    print(f"Invalid choice. Choose a number between 1 and {total_positions}.")
+            except ValueError:
+                print("Enter a valid integer.")
+    
+    print_mat(matrix)
+    determinant = calc_det(matrix)
+    print(f"Determinant of the matrix: {determinant}")
+
+    if determinant == 0:
+        print("Player 0 wins")
+    elif determinant == 2:
+        print("Player 2 wins")
+    else:
+        print("Player 1 wins")
+
+if __name__ == "__main__":
+    n = int(input("Enter the size of the square matrix (n): "))
+    num_players = 2  # Default to two players
+    third_player = input("Is there a third player? (yes/no): ").strip().lower()
+    if third_player == "yes":
+        num_players = 3
+    
+    starting_player = None
+    while starting_player is None or starting_player not in range(num_players):
+        try:
+            starting_player = int(input(f"Who starts? Enter '0' for Player 0, '1' for Player 1, or '2' for Player 2 if there is a third player"))
+            if starting_player not in range(num_players):
+                print(f"Please enter a valid number (0-{num_players - 1}).")
+        except ValueError:
+            print("Please enter a valid number.")
+    
+    play_game(n, starting_player, num_players)

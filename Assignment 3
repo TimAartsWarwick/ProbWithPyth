@@ -1,0 +1,67 @@
+import numpy as np
+import random
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+
+
+
+def hat_draws(n, yes):
+    papers = list(range(1, n+1))
+    #papers = [x for x in range(1, n+1) if x % 2 != 0] Only odd numbers
+    #papers = [x for x in range(1, n+1) if x % 2 == 0] Only even numbers
+    differences = []
+    
+    while len(papers) > 1:
+        draw = random.sample(papers, 2)
+        
+        new = abs(draw[0] - draw[1])
+        
+        papers.append(new)
+        differences.append(new)
+        
+        papers.remove(draw[0])
+        papers.remove(draw[1])
+        
+    if yes == 1:
+        return differences, papers[0]
+    else:
+        return papers[0]
+
+n = 16
+print(f"For {n} numbers in the hat we have differences and final number: ")
+print(hat_draws(n, 1))
+
+
+def multiple(times):
+    results = [hat_draws(2024, 0) for _ in range(times)]
+    return results
+
+multi_results = multiple(500)
+#print(multi_results)
+
+#plt.hist(multi_results, bins=50, color='blue', edgecolor='black')
+plt.hist(multi_results, bins=max(multi_results), color='blue')
+plt.xlabel('Remaining Number')
+plt.ylabel('Frequency')
+plt.show()
+
+data = multi_results 
+
+lambda_est = 1 / np.mean(data)
+
+d, p_value = stats.kstest(data, 'expon', args=(0, 1/lambda_est))
+print(f"K-S test statistic: {d}, P-value: {p_value}")
+
+#plt.hist(data, bins=50, density=True, alpha=0.5, color='g', label='Simulation Data')
+plt.hist(data, bins=max(data), density=True, alpha=0.5, color='g', label='Simulation Data')
+
+x = np.linspace(min(data), max(data), 100)
+pdf = stats.expon.pdf(x, scale=1/lambda_est)
+plt.plot(x, pdf, 'r-', label='Theoretical Exponential PDF')
+
+plt.xlabel('Remaining Number')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
+
+

@@ -1,0 +1,88 @@
+import numpy as np
+import random
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+from scipy.special import comb
+import math
+
+def sum_series(n):
+    start = math.ceil((n - 1) / 2)
+    total_sum = 0
+    for i in range(start, n):
+        total_sum += (1 / (2 ** i)) * comb(i, n - 1 - i)
+    return total_sum
+
+n_values = range(1, 26)
+sum_results = [sum_series(n) for n in n_values]
+
+plt.plot(n_values, sum_results, marker='o', linestyle='-', color='b')
+plt.xlabel('Square')
+plt.ylabel('Chance of landing exactly on square')
+plt.grid(True)
+plt.xticks(np.arange(min(n_values), max(n_values)+1, 1))
+plt.show()
+
+
+def sum_series_variable_a(a):
+    total_sum = 0
+    if a < 12 or a > 24:
+        return None
+    for i in range(12, a + 1):
+        total_sum += (1 / (2 ** i)) * comb(i, 24 - i)
+    return total_sum
+
+a_values = range(12, 25)
+sum_results_a = [sum_series_variable_a(a) for a in a_values]
+
+plt.plot(a_values, sum_results_a, marker='o', linestyle='-', color='b')
+plt.xlabel('Throws')
+plt.ylabel('Chance of landing exactly on 25')
+plt.grid(True)
+plt.xticks(np.arange(min(a_values), max(a_values)+1, 1))
+plt.show()
+
+def play_game(target_step, max_throws, die_sides):
+    current_step = 1
+    for throw in range(max_throws):
+        toss_result = random.randint(1, die_sides)
+        current_step += toss_result
+        print(f"Throw {throw + 1}: Moved {toss_result} steps, now on step {current_step}.")
+        if current_step == target_step:
+            print(f"You've landed on the target step {target_step} in {throw + 1} throws.")
+            return 1, current_step, throw + 1
+        elif current_step > target_step:
+            print(f"You've passed the target step {target_step}, ending on step {current_step}.")
+            return 0, current_step, throw + 1
+    
+    print(f"You didn't reach the target step {target_step}. You are on step {current_step}.")
+    return 0, current_step, max_throws
+
+target_step_user = int(input("Enter the target step you want to land on: "))
+max_throws_user = int(input("Enter the maximum number of throws you want: "))
+die_sides_user = int(input("How many sides does your die have (original game is 2): "))
+
+play_game(target_step_user, max_throws_user, die_sides_user)
+
+def play_game_modified(target_step, max_throws, die_sides):
+    current_step = 1
+    for _ in range(max_throws):
+        current_step += random.randint(1, die_sides)
+        if current_step == target_step:
+            return 1
+        elif current_step > target_step:
+            return 0
+    return 0
+
+def simulate_game(n_simulations):
+    success_count = 0
+    for _ in range(n_simulations):
+        success_count += play_game_modified(target_step_user, max_throws_user, die_sides_user)
+
+    success_percentage = (success_count / n_simulations) * 100
+    return success_percentage
+
+n_simulations_user = int(input("How many simulations do you want to run: ")) 
+
+success_percentage = simulate_game(n_simulations_user)
+print(f"Percentage of times landed on target: {success_percentage}%")
+

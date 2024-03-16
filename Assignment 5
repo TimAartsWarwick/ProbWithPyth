@@ -1,0 +1,30 @@
+import numpy as np
+import random
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+from scipy.special import comb
+import math
+
+
+def corners(n):
+    differences = []
+    sequence = [1]
+
+    for i in range(1, int(n/2+1)):
+        differences.extend([i, i])
+
+    for diff in differences:
+        next_value = sequence[-1] + diff
+        sequence.append(next_value)
+
+    return sequence[:n]
+
+corners(20)
+
+y_values = [20, 24, 32, 24, 44, 32, 56, 40, 44, 72, 52, 56, 88, 64, 68, 72, 108, 80, 84, 88, 128, 96, 100, 104, 108]
+x_values = list(range(1, len(y_values) + 1))
+
+plt.plot(x_values, y_values, marker='o')
+plt.xlabel('Values')
+plt.ylabel('Sums')
+plt.show()

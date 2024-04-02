@@ -1,0 +1,409 @@
+import numpy as np
+import random
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+from scipy.special import comb
+import math
+from itertools import permutations
+from itertools import product
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from collections import Counter
+
+
+
+def iterate_columns(col_values, max_iterations, show_iterations, show_graph):
+
+    possible = check_terminate(col_values)
+    if possible == 1:
+        print("It is possible for these initial conditions to terminate")  
+    if possible == 0:
+        print("It is not possible for these initial conditions to terminate")
+    
+    history = [list(col_values)]
+    
+    iteration = 0
+    while iteration < max_iterations:
+        if sum([value == 0 for value in col_values]) >= 2:
+            print("Terminating: Two columns have reached 0.")
+            break
+
+        available_columns = [i for i, value in enumerate(col_values) if value > 0]
+
+        if len(available_columns) > 1:
+            decrement_columns = select_columns_for_decrement(col_values) #WEIGHTED COLUMN SELECTION
+            #decrement_columns = random.sample(available_columns, 2) #RANDOM COLUMN SELECTION
+        else:
+            print("Terminating: Only one column has a non-zero value.")
+            break
+
+        increment_column = [i for i in range(3) if i not in decrement_columns][0]
+
+        for col in decrement_columns:
+            col_values[col] -= 1
+        col_values[increment_column] += 2
+
+        if show_iterations == "yes":
+            print(f"Iteration {iteration + 1}: {col_values}")
+
+        history.append(list(col_values))
+        
+        iteration += 1
+        
+    if show_graph == "yes":
+        plt.figure(figsize=(10, 6))
+        plt.plot([state[0] for state in history], label='Particle A')
+        plt.plot([state[1] for state in history], label='Particle B')
+        plt.plot([state[2] for state in history], label='Particle C')
+        plt.xlabel('Number of Collisions')
+        plt.ylabel('Number of Particles')
+        plt.legend()
+        plt.show()
+
+    if iteration == max_iterations:
+        print("Reached maximum iterations.")
+
+def select_columns_for_decrement(col_values):
+    eligible_columns = [(index, value) for index, value in enumerate(col_values) if value > 0]
+    
+    if len(eligible_columns) <= 2:
+        selected_indexes = [col[0] for col in eligible_columns]
+    else:
+        weights = [col[1] for col in eligible_columns]
+        columns = [col[0] for col in eligible_columns]
+        first_choice = random.choices(columns, weights=weights, k=1)[0]
+        
+        excluded_first_choice_index = columns.index(first_choice)
+        new_columns = columns[:excluded_first_choice_index] + columns[excluded_first_choice_index+1:]
+        new_weights = weights[:excluded_first_choice_index] + weights[excluded_first_choice_index+1:]
+        
+        second_choice = random.choices(new_columns, weights=new_weights, k=1)[0]
+        
+        selected_indexes = [first_choice, second_choice]
+
+    return selected_indexes
+
+def check_terminate(col_values):
+    
+    perms = permutations(col_values, 2)
+    
+    for a, b in perms:
+        if a >= b and (a - b) % 3 == 0:
+            return 1
+        
+    return 0
+
+initial_values = [int(input(f"Enter initial value for column {i+1}: ")) for i in range(3)]
+max_iterations = int(input("Enter the maximum number of iterations: "))
+show_iterations_user = input("Enter yes if you want to see the iterations: ")
+show_graph_user = input("Enter yes if you want to see the graph: ")
+iterate_columns(initial_values, max_iterations, show_iterations_user, show_graph_user)
+
+
+
+
+
+def plot_terminating_combinations(n):
+    
+    terminating_combinations1 = []
+    terminating_combinations2 = []
+
+    for col_values in product(range(n+1), repeat=3):
+        if check_terminate(col_values) == 1:
+            terminating_combinations1.append(col_values)
+            
+    for col_values in product(range(n+1), repeat=3):
+        if check_terminate(col_values) == 0:
+            terminating_combinations2.append(col_values)
+            
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    xs = [combo[0] for combo in terminating_combinations1]
+    ys = [combo[1] for combo in terminating_combinations1]
+    zs = [combo[2] for combo in terminating_combinations1]
+    
+    xs2 = [combo[0] for combo in terminating_combinations2]
+    ys2 = [combo[1] for combo in terminating_combinations2]
+    zs2 = [combo[2] for combo in terminating_combinations2]
+    
+    ax.scatter(xs, ys, zs, c='b', marker='.', s=20, alpha=0.5)
+    ax.scatter(xs2, ys2, zs2, c='r', marker='.', s=20, alpha=1)
+    
+    ax.set_xlabel('Particle 1')
+    ax.set_ylabel('Particle 2')
+    ax.set_zlabel('Particle 3')
+    
+    ax.set_xlim([0, n])
+    ax.set_ylim([0, n])
+    ax.set_zlim([0, n])
+    
+    ax.view_init(elev=40, azim=60)
+
+    ax.grid(True)
+    
+    plt.show()
+
+plot_terminating_combinations(5)
+
+
+
+
+print("CODE FOR EXTENSION 1")
+
+def iterate_columns_EXT(col_values, max_iterations, show_iterations, show_graph):
+
+    possible = check_terminate_EXT(col_values)
+    if possible == 1:
+        print("It is possible for these initial conditions to terminate")  
+    if possible == 0:
+        print("It is not possible for these initial conditions to terminate")
+    
+    history = [list(col_values)]
+    
+    iteration = 0
+    while iteration < max_iterations:
+        if sum([value == 0 for value in col_values]) >= 2:
+            print("Terminating: Two columns have reached 0.")
+            break
+
+        available_columns = [i for i, value in enumerate(col_values) if value > 0]
+
+        if len(available_columns) > 1:
+            decrement_columns = select_columns_for_decrement_EXT(col_values)
+        else:
+            print("Terminating: Only one column has a non-zero value.")
+            break
+            
+        same_columns = 0
+        
+        if decrement_columns[0] == decrement_columns[1]:
+            same_columns = 1
+
+        if same_columns == 0:
+            increment_column = [i for i in range(3) if i not in decrement_columns][0]
+
+            for col in decrement_columns:
+                col_values[col] -= 1
+            col_values[increment_column] += 2
+
+        if show_iterations == "yes":
+            print(f"Iteration {iteration + 1}: {col_values}")
+
+        history.append(list(col_values))
+        
+        iteration += 1
+        
+    if show_graph == "yes":
+        plt.figure(figsize=(10, 6))
+        plt.plot([state[0] for state in history], label='Particle A')
+        plt.plot([state[1] for state in history], label='Particle B')
+        plt.plot([state[2] for state in history], label='Particle C')
+        plt.xlabel('Number of Collisions')
+        plt.ylabel('Number of Particles')
+        plt.legend()
+        plt.show()
+
+    if iteration == max_iterations:
+        print("Reached maximum iterations.")
+
+def select_columns_for_decrement_EXT(col_values):
+    eligible_columns = [(index, value) for index, value in enumerate(col_values) if value > 0]
+    
+    if len(eligible_columns) <= 2:
+        selected_indexes = [col[0] for col in eligible_columns]
+    else:
+        weights = [col[1] for col in eligible_columns]
+        columns = [col[0] for col in eligible_columns]
+        first_choice = random.choices(columns, weights=weights, k=1)[0]
+        
+        second_choice = random.choices(columns, weights=weights, k=1)[0]
+        
+        selected_indexes = [first_choice, second_choice]
+
+    return selected_indexes
+
+def check_terminate_EXT(col_values):
+    
+    perms = permutations(col_values, 2)
+    
+    for a, b in perms:
+        if a >= b and (a - b) % 3 == 0:
+            return 1
+        
+    return 0
+
+play_extension1 = input("Enter yes if you want to play extension 1: ")
+if play_extension1 == "yes":
+    initial_values_EXT = [int(input(f"Enter initial value for column {i+1}: ")) for i in range(3)]
+    max_iterations_EXT = int(input("Enter the maximum number of iterations: "))
+    show_iterations_user_EXT = input("Enter yes if you want to see the iterations: ")
+    show_graph_user_EXT = input("Enter yes if you want to see the graph: ")
+    iterate_columns_EXT(initial_values_EXT, max_iterations_EXT, show_iterations_user_EXT, show_graph_user_EXT)
+
+
+
+
+
+
+print("CODE FOR EXTENSION 2")
+
+def iterate_columns_EXT2(num_types, col_values, max_iterations, show_iterations, show_graph):
+    
+    history = [list(col_values)]
+    
+    iteration = 0
+    while iteration < max_iterations:
+        if sum([value == 0 for value in col_values]) >= (num_types - 1):
+            print("Terminating: One column with 0 remaining.")
+            break
+
+        available_columns = [i for i, value in enumerate(col_values) if value > 0]
+
+        if len(available_columns) > 1:
+            decrement_columns = select_columns_for_decrement_EXT2(col_values)
+        else:
+            print("Terminating: Only one column has a non-zero value.")
+            break
+
+        increment_column = [i for i in range(num_types) if i not in decrement_columns]
+
+        for col in decrement_columns:
+            col_values[col] -= 1
+        
+        if increment_column:
+            chosen_increment_column = random.choice(increment_column)
+            col_values[chosen_increment_column] += 2
+
+        if show_iterations == "yes":
+            print(f"Iteration {iteration + 1}: {col_values}")
+
+        history.append(list(col_values))
+        
+        iteration += 1
+        
+    if show_graph == "yes":
+        plt.figure(figsize=(10, 6))
+        for i in range(num_types):
+            plt.plot([state[i] for state in history], label=f'Particle {i+1}')
+            
+        plt.xlabel('Number of Collisions')
+        plt.ylabel('Number of Particles')
+        plt.legend()
+        plt.show()
+
+    if iteration == max_iterations:
+        print("Reached maximum iterations.")
+
+def select_columns_for_decrement_EXT2(col_values):
+    eligible_columns = [(index, value) for index, value in enumerate(col_values) if value > 0]
+    
+    if len(eligible_columns) <= 2:
+        selected_indexes = [col[0] for col in eligible_columns]
+    else:
+        weights = [col[1] for col in eligible_columns]
+        columns = [col[0] for col in eligible_columns]
+        first_choice = random.choices(columns, weights=weights, k=1)[0]
+        
+        excluded_first_choice_index = columns.index(first_choice)
+        new_columns = columns[:excluded_first_choice_index] + columns[excluded_first_choice_index+1:]
+        new_weights = weights[:excluded_first_choice_index] + weights[excluded_first_choice_index+1:]
+        
+        second_choice = random.choices(new_columns, weights=new_weights, k=1)[0]
+        
+        selected_indexes = [first_choice, second_choice]
+
+    return selected_indexes
+
+play_extension2 = input("Enter yes if you want to play extension 2: ")
+if play_extension2 == "yes":    
+    num_types_EXT2 = int(input("Enter the number of particle types: "))
+    initial_values_EXT2 = [int(input(f"Enter initial value for column {i+1}: ")) for i in range(num_types_EXT2)]
+    max_iterations_EXT2 = int(input("Enter the maximum number of iterations: "))
+    show_iterations_user_EXT2 = input("Enter yes if you want to see the iterations: ")
+    show_graph_user_EXT2 = input("Enter yes if you want to see the graph: ")
+    iterate_columns_EXT2(num_types_EXT2, initial_values_EXT2, max_iterations_EXT2, show_iterations_user_EXT2, show_graph_user_EXT2)
+
+
+    
+
+
+    
+print("CODE FOR EXTENSION 3")
+
+def iterate_columns_EXT3(num_types, col_values, max_iterations, show_iterations, show_graph):
+    
+    history = [list(col_values)]
+    
+    iteration = 0
+    while iteration < max_iterations:
+        if sum([value == 0 for value in col_values]) >= (num_types - 1):
+            print("Terminating: One column with 0 remaining.")
+            break #HERE
+
+        available_columns = [i for i, value in enumerate(col_values) if value > 0]
+
+        if len(available_columns) > 1:
+            decrement_columns = select_columns_for_decrement_EXT2(col_values)
+        else:
+            print("Terminating: Only one column has a non-zero value.")
+            break
+
+        increment_column = [i for i in range(num_types) if i not in decrement_columns]
+
+        for col in decrement_columns:
+            col_values[col] -= 1
+        
+        if increment_column:
+            chosen_increment_column = random.choice(increment_column)
+            col_values[chosen_increment_column] += 1
+
+        if show_iterations == "yes":
+            print(f"Iteration {iteration + 1}: {col_values}")
+
+        history.append(list(col_values))
+        
+        iteration += 1
+        
+    if show_graph == "yes":
+        plt.figure(figsize=(10, 6))
+        for i in range(num_types):
+            plt.plot([state[i] for state in history], label=f'Particle {i+1}')
+            
+        plt.xlabel('Number of Collisions')
+        plt.ylabel('Number of Particles')
+        plt.legend()
+        plt.show()
+
+    if iteration == max_iterations:
+        print("Reached maximum iterations.")
+
+def select_columns_for_decrement_EXT3(col_values):
+    eligible_columns = [(index, value) for index, value in enumerate(col_values) if value > 0]
+    
+    if len(eligible_columns) <= 2:
+        selected_indexes = [col[0] for col in eligible_columns]
+    else:
+        weights = [col[1] for col in eligible_columns]
+        columns = [col[0] for col in eligible_columns]
+        first_choice = random.choices(columns, weights=weights, k=1)[0]
+        
+        excluded_first_choice_index = columns.index(first_choice)
+        new_columns = columns[:excluded_first_choice_index] + columns[excluded_first_choice_index+1:]
+        new_weights = weights[:excluded_first_choice_index] + weights[excluded_first_choice_index+1:]
+        
+        second_choice = random.choices(new_columns, weights=new_weights, k=1)[0]
+        
+        selected_indexes = [first_choice, second_choice]
+
+    return selected_indexes
+
+play_extension3 = input("Enter yes if you want to play extension 3: ")
+if play_extension3 == "yes": 
+    num_types_EXT3 = int(input("Enter the number of particle types: "))
+    initial_values_EXT3 = [int(input(f"Enter initial value for column {i+1}: ")) for i in range(num_types_EXT3)]
+    max_iterations_EXT3 = int(input("Enter the maximum number of iterations: "))
+    show_iterations_user_EXT3 = input("Enter yes if you want to see the iterations: ")
+    show_graph_user_EXT3 = input("Enter yes if you want to see the graph: ")
+    iterate_columns_EXT3(num_types_EXT3, initial_values_EXT3, max_iterations_EXT3, show_iterations_user_EXT3, show_graph_user_EXT3)
+
